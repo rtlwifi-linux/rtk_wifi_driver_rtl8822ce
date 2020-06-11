@@ -1,0 +1,8 @@
+--- include/autoconf.h
++++ include/autoconf.h
+@@ -282,4 +282,5 @@
+ 
+ #define CONFIG_RTW_DYNAMIC_BW
+ #define CONFOG_RTW_VCS		1	/*0: disabled, 1: enabled, 2:auto*/ 
++#define CONFOG_RTW_CCA_RTS	1	/*0: legany, 1: static: 2: dynamic*/
+ 

@@ -214,6 +214,8 @@ static u8 rtw_chbw_to_cfg80211_chan_def(struct wiphy *wiphy, struct cfg80211_cha
 	struct ieee80211_channel *chan;
 	u8 ret = _FAIL;
 
+	_rtw_memset(chdef, 0, sizeof(*chdef));
+
 	freq = rtw_ch2freq(ch);
 	if (!freq)
 		goto exit;
@@ -250,7 +252,6 @@ static u8 rtw_chbw_to_cfg80211_chan_def(struct wiphy *wiphy, struct cfg80211_cha
 
 	chdef->chan = chan;
 	chdef->center_freq1 = cfreq;
-	chdef->center_freq2 = 0;
 
 	ret = _SUCCESS;
 

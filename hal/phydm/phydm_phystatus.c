@@ -2308,6 +2308,7 @@ void phydm_rx_physts_jgr3(void *dm_void, u8 *phy_sts,
 	case 4:
 		phydm_get_physts_ofdm_cmn_jgr3(dm, phy_sts, pktinfo, phy_info);
 		phydm_get_physts_4_others_jgr3(dm, phy_sts, pktinfo, phy_info);
+		break;
 	case 5:
 		phydm_get_physts_ofdm_cmn_jgr3(dm, phy_sts, pktinfo, phy_info);
 		phydm_get_physts_5_others_jgr3(dm, phy_sts, pktinfo, phy_info);

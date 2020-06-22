@@ -430,6 +430,12 @@ u32 rtl8822ce_init(PADAPTER padapter)
 
 	hal = GET_HAL_DATA(padapter);
 
+#ifdef CONFIG_8822CE_DISABLE_BT
+	val8 = rtw_read8(padapter, REG_WL_BT_PWR_CTRL_8822C + 2);
+	rtw_write8(padapter, REG_WL_BT_PWR_CTRL_8822C + 2, val8 & (~BIT2));
+	RTW_INFO("%s: BT disabled for 8822CE.\n", __func__);
+#endif
+
 #if 0
 	/*Only reset HW Ring*/
 	InitMAC_TRXBD_8822CE(padapter);

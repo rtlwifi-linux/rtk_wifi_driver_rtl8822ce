@@ -71,6 +71,12 @@
 
 #endif
 
+#if defined(CONFIG_8822CE_DISABLE_BT) && defined(CONFIG_BT_COEXIST)
+
+	#error "Disable BT COEXIST before disable BT function\n"
+
+#endif
+
 /* Default enable single wiphy if driver ver >= 5.9 */
 #define RTW_SINGLE_WIPHY
 

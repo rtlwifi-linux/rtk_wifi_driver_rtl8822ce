@@ -1125,7 +1125,7 @@ u8 run_in_thread_hdl(_adapter *padapter, u8 *pbuf);
 
 int rtw_sae_preprocess(_adapter *adapter, const u8 *buf, u32 len, u8 tx);
 
-#define GEN_MLME_EXT_HANDLER(cmd, callback)	{cmd, callback},
+#define GEN_MLME_EXT_HANDLER(cmd, callback_func)	{.cmd_hdl = cmd, .callback = callback_func},
 
 struct rtw_cmd {
 	u8(*cmd_hdl)(_adapter *padapter, u8 *pbuf);

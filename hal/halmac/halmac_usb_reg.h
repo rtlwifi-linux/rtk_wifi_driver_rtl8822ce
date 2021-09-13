@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2016 - 2019 Realtek Corporation. All rights reserved.
+ * Copyright(c) 2016 - 2021 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -11,9 +11,11 @@
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
  *
- ******************************************************************************/
+ *****************************************************************************/
 
 #ifndef __HALMAC_USB_REG_H__
 #define __HALMAC_USB_REG_H__
+
+#define USB_REG_PAGE 0xF4
 
 #endif/* __HALMAC_USB_REG_H__ */

@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2017 - 2019 Realtek Corporation. All rights reserved.
+ * Copyright(c) 2017 - 2021 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -11,7 +11,7 @@
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
  *
- ******************************************************************************/
+ *****************************************************************************/
 
 #include "halmac_init_8822c.h"
 #include "halmac_8822c_cfg.h"
@@ -1092,7 +1092,8 @@ init_wmac_cfg_8822c(struct halmac_adapter *adapter)
 	HALMAC_REG_W8(REG_TCR + 2, WLAN_TX_FUNC_CFG2);
 	HALMAC_REG_W8(REG_TCR + 1, WLAN_TX_FUNC_CFG1);
 
-	HALMAC_REG_W16_SET(REG_GENERAL_OPTION, BIT_DUMMY_FCS_READY_MASK_EN);
+	HALMAC_REG_W16_SET(REG_GENERAL_OPTION,
+			   BIT_DUMMY_FCS_READY_MASK_EN | BIT_RXFIFO_GNT_CUT);
 
 	HALMAC_REG_W8_SET(REG_SND_PTCL_CTRL, BIT_R_DISABLE_CHECK_VHTSIGB_CRC);
 

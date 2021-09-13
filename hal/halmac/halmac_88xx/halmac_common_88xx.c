@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2016 - 2019 Realtek Corporation. All rights reserved.
+ * Copyright(c) 2016 - 2021 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -11,7 +11,7 @@
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
  *
- ******************************************************************************/
+ *****************************************************************************/
 
 #include "halmac_common_88xx.h"
 #include "halmac_88xx_cfg.h"
@@ -3221,6 +3221,15 @@ parse_intf_phy_88xx(struct halmac_adapter *adapter,
 			} else if (intf_phy == HAL_INTF_PHY_USB2 ||
 				   intf_phy == HAL_INTF_PHY_USB3) {
 #if HALMAC_USB_SUPPORT
+				if (offset > 0x100)
+					usb_page_switch_88xx(adapter,
+							     intf_phy,
+							     1);
+				else
+					usb_page_switch_88xx(adapter,
+							     intf_phy,
+							     0);
+				offset = offset & 0xFF;
 				result = usbphy_write_88xx(adapter, (u8)offset,
 							   value, intf_phy);
 				if (result != HALMAC_RET_SUCCESS)

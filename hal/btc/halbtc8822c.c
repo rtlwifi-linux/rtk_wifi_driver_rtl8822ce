@@ -19,8 +19,6 @@
 
 static u8 *trace_buf = &gl_btc_trace_buf[0];
 
-static const u32 bt_desired_ver_8822c = 0x17;
-
 /* rssi express in percentage % (dbm = % - 100)  */
 static const u8 wl_rssi_step_8822c[] = {60, 50, 44, 30};
 static const u8 bt_rssi_step_8822c[] = {8, 15, 20, 25};
@@ -38,7 +36,7 @@ static const struct btc_coex_table_para table_sant_8822c[] = {
 				{0x6a5a5a5a, 0x6a5a5a5a},
 				{0x66555555, 0x5a5a5a5a},
 				{0x66555555, 0x6a5a5a5a}, /*case-10*/
-				{0x66555555, 0x6a5a5aaa},
+				{0x66555555, 0xaaaaaaaa},
 				{0x66555555, 0x5a5a5aaa},
 				{0x66555555, 0x6aaa5aaa},
 				{0x66555555, 0xaaaa5aaa},
@@ -60,7 +58,8 @@ static const struct btc_coex_table_para table_sant_8822c[] = {
 				{0x66556aaa, 0x6a5a6aaa}, /*case-30*/
 				{0xffffffff, 0x5aaa5aaa},
 				{0x56555555, 0x5a5a5aaa},
-				{0xdaffdaff, 0xdaffdaff} };
+				{0xdaffdaff, 0xdaffdaff},
+				{0x6a555a5a, 0x5a5a5a5a} };
 
 /* Non-Shared-Antenna Coex Table */
 static const struct btc_coex_table_para table_nsant_8822c[] = {
@@ -154,7 +153,27 @@ static const struct btc_tdma_para tdma_nsant_8822c[] = {
 static const struct btc_rf_para rf_para_tx_8822c[] = {
 				{0, 0, FALSE, 7},  /* for normal */
 				{0, 16, FALSE, 7}, /* for WL-CPT */
-				{16, 4, TRUE, 4},
+				{16, 4, TRUE, 4},  /* 2 for RCU SDR */
+				{15, 5, TRUE, 4},
+				{7, 8, TRUE, 4},
+				{6, 10, TRUE, 4},
+				{16, 4, TRUE, 4}, /* 6 for RCU OFC */
+				{15, 5, TRUE, 4},
+				{7, 8, TRUE, 4},
+				{6, 10, TRUE, 4},
+				{16, 4, TRUE, 4}, /* 10 for A2DP SDR */
+				{15, 5, TRUE, 4},
+				{7, 8, TRUE, 4},
+				{6, 10, TRUE, 4},
+				{16, 4, TRUE, 4}, /* 14 for A2DP OFC */
+				{15, 5, TRUE, 4},
+				{7, 8, TRUE, 4},
+				{6, 10, TRUE, 4},
+				{16, 4, TRUE, 4}, /* 18 for A2DP+RCU SDR */
+				{15, 5, TRUE, 4},
+				{7, 8, TRUE, 4},
+				{6, 10, TRUE, 4},
+				{16, 4, TRUE, 4}, /* 22 for A2DP+RCU OFC */
 				{15, 5, TRUE, 4},
 				{7, 8, TRUE, 4},
 				{6, 10, TRUE, 4} };
@@ -162,19 +181,42 @@ static const struct btc_rf_para rf_para_tx_8822c[] = {
 static const struct btc_rf_para rf_para_rx_8822c[] = {
 				{0, 0, FALSE, 7},  /* for normal */
 				{0, 16, FALSE, 7}, /* for WL-CPT */
-				{14, 5, TRUE, 5},
+				{14, 5, TRUE, 5}, /* 2 for RCU SDR */
 				{13, 6, TRUE, 5},
 				{6, 9, TRUE, 5},
-				{4, 11, TRUE, 5} };
+				{4, 11, TRUE, 5},
+				{16, 4, TRUE, 4}, /* 6 for RCU OFC */
+				{15, 5, TRUE, 4},
+				{7, 8, TRUE, 4},
+				{6, 10, TRUE, 4},
+				{16, 4, TRUE, 4}, /* 10 for A2DP SDR */
+				{15, 5, TRUE, 4},
+				{7, 8, TRUE, 4},
+				{6, 10, TRUE, 4},
+				{16, 4, TRUE, 4}, /* 14 for A2DP OFC */
+				{15, 5, TRUE, 4},
+				{7, 8, TRUE, 4},
+				{6, 10, TRUE, 4},
+				{16, 4, TRUE, 4}, /* 18 for A2DP+RCU SDR */
+				{15, 5, TRUE, 4},
+				{7, 8, TRUE, 4},
+				{6, 10, TRUE, 4},
+				{16, 4, TRUE, 4}, /* 22 for A2DP+RCU OFC */
+				{15, 5, TRUE, 4},
+				{7, 8, TRUE, 4},
+				{6, 10, TRUE, 4} };
 
 const struct btc_5g_afh_map afh_5g_8822c[] = { {0, 0, 0} };
 
 const struct btc_chip_para btc_chip_para_8822c = {
 	"8822c",				/*.chip_name */
-	20200103,				/*.para_ver_date */
-	0x17,					/*.para_ver */
-	0x17,					/* bt_desired_ver */
+	20210504,				/*.para_ver_date */
+	0x23,					/*.para_ver */
+	0x20,					/* bt_desired_ver */
+	0x70012,				/* wl_desired_ver */
 	TRUE,					/* scbd_support */
+	0xaa,					/* scbd_reg*/
+	BTC_SCBD_16_BIT,			/* scbd_bit_num */
 	TRUE,					/* mailbox_support*/
 	TRUE,					/* lte_indirect_access */
 	TRUE,					/* new_scbd10_def */
@@ -440,19 +482,6 @@ void halbtc8822c_cfg_coexinfo_hw(struct btc_coexist *btc)
 		   "550/522/4-RxAGC/c50", u32tmp[0], u8tmp[0],
 		   (u8tmp[1] & 0x2) ? "On" : "Off", u8tmp[2]);
 	CL_PRINTF(cli_buf);
-
-	u8tmp[0] = btc->btc_read_1byte(btc, 0xf8e);
-	u8tmp[1] = btc->btc_read_1byte(btc, 0xf8f);
-	u8tmp[2] = btc->btc_read_1byte(btc, 0xd14);
-	u8tmp[3] = btc->btc_read_1byte(btc, 0xd54);
-
-	CL_SPRINTF(cli_buf, BT_TMP_BUF_SIZE, "\r\n %-35s = %d/ %d/ %d/ %d",
-		   "EVM_A/ EVM_B/ SNR_A/ SNR_B",
-		   (u8tmp[0] > 127 ? u8tmp[0] - 256 : u8tmp[0]),
-		   (u8tmp[1] > 127 ? u8tmp[1] - 256 : u8tmp[1]),
-		   (u8tmp[2] > 127 ? u8tmp[2] - 256 : u8tmp[2]),
-		   (u8tmp[3] > 127 ? u8tmp[3] - 256 : u8tmp[3]));
-	CL_PRINTF(cli_buf);
 }
 
 void halbtc8822c_cfg_wl_tx_power(struct btc_coexist *btc)
@@ -489,13 +518,13 @@ void halbtc8822c_cfg_wl_rx_gain(struct btc_coexist *btc)
 			wl_rx_gain_on = wl_rx_gain_on_HT20;
 		for (i = 0; i < ARRAY_SIZE(wl_rx_gain_on); i++)
 			btc->btc_write_4byte(btc, 0x1d90, wl_rx_gain_on[i]);
-#endif
 
 		/* set Rx filter corner RCK offset */
 		btc->btc_set_rf_reg(btc, BTC_RF_A, 0xde, 0xfffff, 0x22);
 		btc->btc_set_rf_reg(btc, BTC_RF_A, 0x1d, 0xfffff, 0x36);
 		btc->btc_set_rf_reg(btc, BTC_RF_B, 0xde, 0xfffff, 0x22);
 		btc->btc_set_rf_reg(btc, BTC_RF_B, 0x1d, 0xfffff, 0x36);
+#endif
 	} else {
 		BTC_SPRINTF(trace_buf, BT_TMP_BUF_SIZE,
 			    "[BTCoex], Hi-Li Table Off!\n");
@@ -508,17 +537,21 @@ void halbtc8822c_cfg_wl_rx_gain(struct btc_coexist *btc)
 			wl_rx_gain_off = wl_rx_gain_off_HT20;
 		for (i = 0; i < ARRAY_SIZE(wl_rx_gain_off); i++)
 			btc->btc_write_4byte(btc, 0x1d90, wl_rx_gain_off[i]);
-#endif
 
 		/* set Rx filter corner RCK offset */
 		btc->btc_set_rf_reg(btc, BTC_RF_A, 0xde, 0xfffff, 0x20);
 		btc->btc_set_rf_reg(btc, BTC_RF_A, 0x1d, 0xfffff, 0x0);
 		btc->btc_set_rf_reg(btc, BTC_RF_B, 0xde, 0xfffff, 0x20);
 		btc->btc_set_rf_reg(btc, BTC_RF_B, 0x1d, 0xfffff, 0x0);
+#endif
+
 	}
 }
 
 void halbtc8822c_cfg_wlan_act_ips(struct btc_coexist *btc)
+{}
+
+void halbtc8822c_cfg_bt_ctrl_act(struct btc_coexist *btc)
 {}
 
 void halbtc8822c_chip_setup(struct btc_coexist *btc, u8 type)
@@ -550,6 +583,9 @@ void halbtc8822c_chip_setup(struct btc_coexist *btc, u8 type)
 		break;
 	case BTC_CSETUP_WLAN_ACT_IPS:
 		halbtc8822c_cfg_wlan_act_ips(btc);
+		break;
+	case BTC_CSETUP_BT_CTRL_ACT:
+		halbtc8822c_cfg_bt_ctrl_act(btc);
 		break;
 	}
 }

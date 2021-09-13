@@ -178,6 +178,17 @@ void rtw_btcoex_IQKNotify(PADAPTER padapter, u8 state)
 	hal_btcoex_IQKNotify(padapter, state);
 }
 
+void rtw_btcoex_WLRFKNotify(PADAPTER padapter, u8 path, u8 type, u8 state)
+{
+	PHAL_DATA_TYPE	pHalData;
+
+	pHalData = GET_HAL_DATA(padapter);
+	if (_FALSE == pHalData->EEPROMBluetoothCoexist)
+		return;
+
+	hal_btcoex_WLRFKNotify(padapter, path, type, state);
+}
+
 void rtw_btcoex_BtInfoNotify(PADAPTER padapter, u8 length, u8 *tmpBuf)
 {
 	PHAL_DATA_TYPE	pHalData;

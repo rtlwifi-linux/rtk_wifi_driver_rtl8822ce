@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2019 - 2020 Realtek Corporation.
+ * Copyright(c) 2019 - 2021 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -12,5 +12,5 @@
  * more details.
  *
  *****************************************************************************/
-#define DRIVERVERSION	"v5.9.0.3_36433.20200310_COEX20200103-1717"
-#define BTCOEXVERSION	"COEX20200103-1717"
+#define DRIVERVERSION	"v5.14.0.0a-4-g81e5f288f.20210817"
+#define BTCOEXVERSION	"COEX20210504-2323"

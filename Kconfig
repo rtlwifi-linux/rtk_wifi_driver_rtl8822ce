@@ -1,4 +1,4 @@
-config RTL8822CE
+config RTL8822BE
 	tristate "Realtek 8822C PCIE WiFi"
 	depends on PCI
 	---help---

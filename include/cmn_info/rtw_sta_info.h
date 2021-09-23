@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2007 - 2011 Realtek Corporation. All rights reserved.
+ * Copyright(c) 2007 - 2021 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -11,12 +11,7 @@
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
- *
- *
- ******************************************************************************/
+ *****************************************************************************/
 
  /*This header file is for all driver teams to use the same station info.
 If you want to change this file please make sure notify all driver teams maintainers.*/
@@ -85,6 +80,14 @@ enum rf_type {
 	RF_3T3R			= 5,
 	RF_3T4R			= 6,
 	RF_4T4R			= 7,
+	RF_4T3R			= 8,
+	RF_4T2R			= 9,
+	RF_4T1R			= 10,
+	RF_3T2R			= 11,
+	RF_3T1R			= 12,
+	RF_2T1R			= 13,
+	RF_1T4R			= 14,
+	RF_1T3R			= 15,
 	RF_TYPE_MAX,
 };
 
@@ -191,6 +194,7 @@ struct ra_sta_info {
 struct dtp_info {
 	u8	dyn_tx_power;	/*Dynamic Tx power offset*/
 	u8	last_tx_power;
+	boolean	sta_is_alive;
 	u8	sta_tx_high_power_lvl:4;
 	u8	sta_last_dtp_lvl:4;
 };
@@ -248,6 +252,7 @@ struct phydm_phyinfo_struct {
 	u8		cnt_pw2cca;
 	u8		cnt_cca2agc_rdy;
 /*ODM_PHY_STATUS_NEW_TYPE_SUPPORT*/
+	u8		rx_cck_evm;
 };
 
 struct phydm_perpkt_info_struct {

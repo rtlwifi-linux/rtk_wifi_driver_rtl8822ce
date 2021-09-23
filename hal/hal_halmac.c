@@ -628,7 +628,7 @@ static inline u8 is_valid_id_status(enum halmac_feature_id id, enum halmac_cmd_p
 		if (status == HALMAC_CMD_PROCESS_RCVD)
 			return _FALSE;
 		if ((status != HALMAC_CMD_PROCESS_DONE)
-		    || (status != HALMAC_CMD_PROCESS_ERROR))
+		    && (status != HALMAC_CMD_PROCESS_ERROR))
 			RTW_WARN("%s: %s unexpected status(0x%x)!\n",
 				 __FUNCTION__, RTW_HALMAC_FEATURE_NAME[id],
 				 status);
@@ -1209,8 +1209,8 @@ void rtw_halmac_get_version(char *str, u32 len)
 	if (status != HALMAC_RET_SUCCESS)
 		return;
 
-	rtw_sprintf(str, len, "V%d_%02d_%02d",
-		    ver.major_ver, ver.prototype_ver, ver.minor_ver);
+	rtw_sprintf(str, len, "V%d_%02d_%02d_%02d",
+		    ver.major_ver, ver.prototype_ver, ver.minor_ver, HALMAC_PATCH_VER);
 }
 
 int rtw_halmac_init_adapter(struct dvobj_priv *d, struct halmac_platform_api *pf_api)
@@ -1283,9 +1283,13 @@ int rtw_halmac_init_adapter(struct dvobj_priv *d, struct halmac_platform_api *pf
 	/* Convert clock speed unit to MHz from Hz */
 	info.clock_speed = RTW_DIV_ROUND_UP(rtw_sdio_get_clock(d), 1000000);
 	info.block_size = rtw_sdio_get_block_size(d);
-	RTW_DBG("%s: SDIO ver=%u clock=%uMHz blk_size=%u bytes\n",
+	if (d->hmpriv.sdio_io_indir == 2)
+		info.io_indir_flag = 0;
+	else
+		info.io_indir_flag = 1; /* Default enable indirect I/O */
+	RTW_DBG("%s: SDIO ver=%u clock=%uMHz blk_size=%u bytes, io_indir=%u\n",
 		__FUNCTION__, info.spec_ver+2, info.clock_speed,
-		info.block_size);
+		info.block_size, info.io_indir_flag);
 	status = api->halmac_sdio_hw_info(halmac, &info);
 	if (status != HALMAC_RET_SUCCESS) {
 		RTW_ERR("%s: halmac_sdio_hw_info fail!(status=%d)\n",
@@ -2764,6 +2768,21 @@ int rtw_halmac_poweron(struct dvobj_priv *d)
 		 * Work around for warm reboot but device not power off,
 		 * but it would also fall into this case when auto power on is enabled.
 		 */
+#ifdef CONFIG_NARROWBAND_SUPPORTING
+		{
+			struct registry_priv *regsty = dvobj_to_regsty(d);
+			u32 bw_type;
+
+			if (regsty->rtw_nb_config == RTW_NB_CONFIG_WIDTH_10)
+				bw_type = HALMAC_BW_10;
+			else if (regsty->rtw_nb_config == RTW_NB_CONFIG_WIDTH_5)
+				bw_type = HALMAC_BW_5;
+			else
+				bw_type = HALMAC_BW_20;
+
+			api->halmac_set_hw_value(dvobj_to_halmac(d), HALMAC_HW_BANDWIDTH, &bw_type);
+		}
+#endif
 		_power_switch(halmac, api, HALMAC_MAC_POWER_OFF);
 		status = _power_switch(halmac, api, HALMAC_MAC_POWER_ON);
 		RTW_WARN("%s: Power state abnormal, try to recover...%s\n",
@@ -5160,36 +5179,28 @@ void rtw_halmac_led_switch(struct dvobj_priv *d, u8 on)
 	api->halmac_pinmux_wl_led_sw_ctrl(halmac, on);
 }
 
-static int _gpio_cfg(struct dvobj_priv *d, enum halmac_gpio_func func, u8 enable)
+static int _gpio_cfg(struct dvobj_priv *d, enum halmac_gpio_func gpio, u8 enable)
 {
 	struct halmac_adapter *halmac;
 	struct halmac_api *api;
-	u8 enable_org = 0;
 	enum halmac_ret_status status;
 
 
 	halmac = dvobj_to_halmac(d);
 	api = HALMAC_GET_API(halmac);
 
-	api->halmac_pinmux_get_func(halmac, func, &enable_org);
-	if ((enable && enable_org) || (!enable && !enable_org)) {
-		RTW_INFO("%s: pinmux set GPIO func(%d) %s already done\n",
-			 __FUNCTION__, func, enable?"enable":"disable");
-		return 0;
-	}
-
 	if (enable) {
-		status = api->halmac_pinmux_set_func(halmac, func);
+		status = api->halmac_pinmux_set_func(halmac, gpio);
 		if (status != HALMAC_RET_SUCCESS) {
-			RTW_ERR("%s: pinmux set GPIO func(%d) fail!(0x%x)\n",
-				__FUNCTION__, func, status);
+			RTW_ERR("%s: pinmux set GPIO(%d) fail!(0x%x)\n",
+				__FUNCTION__, gpio, status);
 			return -1;
 		}
 	} else {
- 		status = api->halmac_pinmux_free_func(halmac, func);
+ 		status = api->halmac_pinmux_free_func(halmac, gpio);
 		if (status != HALMAC_RET_SUCCESS) {
-			RTW_ERR("%s: pinmux free GPIO func(%d) fail!(0x%x)\n",
-				__FUNCTION__, func, status);
+			RTW_ERR("%s: pinmux free GPIO(%d) fail!(0x%x)\n",
+				__FUNCTION__, gpio, status);
 			return -1;
 		}
 	}
@@ -5249,7 +5260,7 @@ static enum halmac_gpio_func _gpio_to_func_for_rfe_ctrl(u8 gpio)
  * @d:		struct dvobj_priv*
  * @gpio:	gpio number
  *
- * Configure pinmux to enable RFE control GPIO for BB.
+ * Configure pinmux to enable RFE control GPIO.
  *
  * Return 0 for OK, otherwise fail.
  */
@@ -5322,7 +5333,7 @@ static int _halmac_scanoffload(struct dvobj_priv *d, u32 enable, u8 nlo,
 		if (ssid) {
 			if (ssid_len > sizeof(pnossid.SSID)) {
 				RTW_ERR("%s: SSID length(%d) is too long(>%d)!!\n",
-					__FUNCTION__, ssid_len, sizeof(pnossid.SSID));
+					__FUNCTION__, ssid_len, WLAN_SSID_MAXLEN);
 				return -1;
 			}
 
@@ -5464,6 +5475,37 @@ int rtw_halmac_pno_scanoffload(struct dvobj_priv *d, u32 enable)
 #endif /* CONFIG_PNO_SUPPORT */
 
 #ifdef CONFIG_SDIO_HCI
+
+/**
+ * rtw_halmac_preinit_sdio_io_indirect() - Enable indirect I/O or not
+ * @d:		struct dvobj_priv*
+ * @enable:	true: enable, false: disable
+ *
+ * Enable register access using direct I/O or indirect. This function should be
+ * called before rtw_halmac_init_adapter(), and the life cycle is the same as
+ * driver until removing driver.
+ *
+ * Return 0 for OK, otherwise fail.
+ */
+int rtw_halmac_preinit_sdio_io_indirect(struct dvobj_priv *d, bool enable)
+{
+	struct halmac_adapter *halmac;
+	struct halmacpriv *priv;
+
+
+	halmac = dvobj_to_halmac(d);
+	if (halmac) {
+		RTW_WARN("%s: illegal operation! "
+			 "preinit function only could be called before init!\n",
+			 __FUNCTION__);
+		return -1;
+	}
+
+	priv = &d->hmpriv;
+	priv->sdio_io_indir = (enable ? 1 : 2);
+
+	return 0;
+}
 
 /*
  * Description:

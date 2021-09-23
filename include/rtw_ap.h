@@ -23,7 +23,7 @@
 #define STA_RX_CSA 2
 #define CSA_STA_JOINBSS 3
 #define CSA_IE_REMOVE 0xff
-#define DEFAULT_CSA_CNT 3
+#define DEFAULT_CSA_CNT 0
 #define MAX_CSA_CNT 10
 
 /* external function */
